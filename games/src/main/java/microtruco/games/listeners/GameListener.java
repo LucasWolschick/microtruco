@@ -5,15 +5,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import microtruco.games.controllers.MatchController;
 
 @Component
 public class GameListener {
-    @Autowired
     private MatchController matchController;
+
+    public GameListener(MatchController matchController) {
+        this.matchController = matchController;
+    }
 
     @RabbitListener(queues = "gameQueue")
     public Object handleGameMessage(HashMap<String, Object> message) {

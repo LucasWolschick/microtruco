@@ -9,7 +9,6 @@ import microtruco.users.services.JwtService;
 
 import java.util.HashMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +17,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    @Autowired
     private UserRepository repository;
-
-    @Autowired
     private JwtService jwtService;
+
+    public UserController(UserRepository repository, JwtService jwtService) {
+        this.repository = repository;
+        this.jwtService = jwtService;
+    }
 
     @PostMapping("/auth")
     public HashMap<String, String> createUser(@Param("username") String username) {

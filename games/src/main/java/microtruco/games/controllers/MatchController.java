@@ -10,7 +10,6 @@ import microtruco.games.services.AuthService;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,11 +20,13 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @RestController
 @RequestMapping("/games")
 public class MatchController {
-    @Autowired
     private AuthService authService;
-
-    @Autowired
     private MatchRepository repository;
+
+    public MatchController(AuthService authService, MatchRepository repository) {
+        this.authService = authService;
+        this.repository = repository;
+    }
 
     public Match createMatch(String lobbyId, List<Long> players) {
         if (players.size() != 2 && players.size() != 4) {
