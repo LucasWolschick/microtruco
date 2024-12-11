@@ -70,7 +70,7 @@ public class MatchController {
         }
 
         var actions = match.getGame().getActions();
-        var playerIndex = match.getPlayers().indexOf(id);
+        var playerIndex = match.getPlayers().indexOf(user);
         if (actions.player() != playerIndex) {
             // only show actions if it's the player's turn
             // only show actions to the right player

@@ -415,7 +415,7 @@ public class Trick implements Serializable {
 
     public Trick hideHand(int playerIndex) {
         List<Hand> newHands = IntStream.range(0, hands.size())
-                .mapToObj(i -> i == playerIndex ? hands.get(i) : hands.get(i).hide())
+                .mapToObj(i -> i == playerIndex ? hands.get(i).hide() : hands.get(i))
                 .collect(Collectors.toUnmodifiableList());
         return new Trick(state, newHands, table, players, flip, isFirstTrick, trickValue, startingPlayer);
     }

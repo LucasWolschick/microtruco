@@ -25,7 +25,7 @@ public class GameService {
         if (result == null) {
             throw new RuntimeException("Failed to start game");
         }
-        return (Long) result;
+        return ((Number) result).longValue();
     }
 
     public void stopGame(Lobby lobby) {
