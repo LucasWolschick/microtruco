@@ -14,7 +14,7 @@ public class Trick implements Serializable {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
     @JsonSubTypes({
             @JsonSubTypes.Type(value = TrickState.PlayerTurn.class, name = "PlayerTurn"),
-            @JsonSubTypes.Type(value = TrickState.ElevenHand.class, name = "ElevenHand"),
+            @JsonSubTypes.Type(value = TrickState.ElevenHandDecision.class, name = "ElevenHandDecision"),
             @JsonSubTypes.Type(value = TrickState.Challenge.class, name = "Challenge"),
             @JsonSubTypes.Type(value = TrickState.Over.class, name = "Over"),
     })
@@ -22,13 +22,16 @@ public class Trick implements Serializable {
         public record PlayerTurn(int player) implements TrickState {
         }
 
-        public record ElevenHand() implements TrickState {
+        public record ElevenHandDecision(int decider) implements TrickState {
         }
 
         public record Challenge(int challenger, int challenged, int worth) implements TrickState {
         }
 
         public record Over(int winningTeam, int winningPlayer, int points) implements TrickState {
+        }
+
+        public record RoundEnd(int winningTeam, int winningPlayer, int points) implements TrickState {
         }
     }
 
@@ -67,10 +70,11 @@ public class Trick implements Serializable {
     private final List<Long> players;
     private final Card flip;
     private final boolean isFirstTrick;
+    private final boolean isElevenHand;
     private final int trickValue;
 
     private Trick(List<TrickState> state, List<Hand> hands, List<Card> table, List<Long> players, Card flip,
-            boolean isFirstTrick, int trickValue, int startedAt) {
+            boolean isFirstTrick, int trickValue, int startedAt, boolean isElevenHand) {
         this.state = state;
         this.startingPlayer = startedAt;
         this.hands = hands;
@@ -79,10 +83,11 @@ public class Trick implements Serializable {
         this.flip = flip;
         this.isFirstTrick = isFirstTrick;
         this.trickValue = trickValue;
+        this.isElevenHand = isElevenHand;
     }
 
     public Trick(List<Long> players, List<Hand> hands, Card flip, int startingPlayer, boolean isFirstTrick,
-            int trickValue) {
+            int trickValue, boolean isElevenHand) {
         this.state = List.of(new TrickState.PlayerTurn(startingPlayer));
         this.startingPlayer = startingPlayer;
         this.hands = hands;
@@ -91,31 +96,32 @@ public class Trick implements Serializable {
         this.flip = flip;
         this.isFirstTrick = isFirstTrick;
         this.trickValue = trickValue;
+        this.isElevenHand = isElevenHand;
     }
 
     public Trick pushState(TrickState newState) {
         List<TrickState> newStateList = new ArrayList<>(state);
         newStateList.add(newState);
         return new Trick(List.copyOf(newStateList), hands, table, players, flip, isFirstTrick, trickValue,
-                startingPlayer);
+                startingPlayer, isElevenHand);
     }
 
     public Trick popState() {
         List<TrickState> newStateList = new ArrayList<>(state);
         newStateList.remove(newStateList.size() - 1);
         return new Trick(List.copyOf(newStateList), hands, table, players, flip, isFirstTrick, trickValue,
-                startingPlayer);
+                startingPlayer, isElevenHand);
     }
 
     public Trick replaceState(TrickState newState) {
         List<TrickState> newStateList = new ArrayList<>(state);
         newStateList.set(newStateList.size() - 1, newState);
         return new Trick(List.copyOf(newStateList), hands, table, players, flip, isFirstTrick, trickValue,
-                startingPlayer);
+                startingPlayer, isElevenHand);
     }
 
     public Trick withTrickValue(int trickValue) {
-        return new Trick(state, hands, table, players, flip, isFirstTrick, trickValue, startingPlayer);
+        return new Trick(state, hands, table, players, flip, isFirstTrick, trickValue, startingPlayer, isElevenHand);
     }
 
     public Trick withCardPlayed(int player, Card card) {
@@ -124,7 +130,7 @@ public class Trick implements Serializable {
         var newTable = new ArrayList<>(table);
         newTable.add(card);
         return new Trick(state, List.copyOf(newHands), List.copyOf(newTable), players, flip, isFirstTrick, trickValue,
-                startingPlayer);
+                startingPlayer, isElevenHand);
     }
 
     public Trick withHiddenCardPlayed(int player, Card card) {
@@ -133,7 +139,18 @@ public class Trick implements Serializable {
         var newTable = new ArrayList<>(table);
         newTable.add(Card.HIDDEN_CARD);
         return new Trick(state, List.copyOf(newHands), List.copyOf(newTable), players, flip, isFirstTrick, trickValue,
-                startingPlayer);
+                startingPlayer, isElevenHand);
+    }
+
+    public Trick withHiddenHand(int playerIndex) {
+        List<Hand> newHands = IntStream.range(0, hands.size())
+                .mapToObj(i -> i == playerIndex ? hands.get(i).hide() : hands.get(i))
+                .collect(Collectors.toUnmodifiableList());
+        return new Trick(state, newHands, table, players, flip, isFirstTrick, trickValue, startingPlayer, isElevenHand);
+    }
+
+    public Trick withElevenHand() {
+        return new Trick(state, hands, table, players, flip, isFirstTrick, trickValue, startingPlayer, true);
     }
 
     @JsonIgnore
@@ -146,12 +163,15 @@ public class Trick implements Serializable {
                 actions = List.of();
                 playerToDecide = 0;
                 break;
-            case TrickState.ElevenHand():
+            case TrickState.RoundEnd(int _, int _, int _):
+                actions = List.of();
+                playerToDecide = 0;
+                break;
+            case TrickState.ElevenHandDecision(int decider):
                 actions = List.of(
                         new TrickAction.Call(),
                         new TrickAction.Fold());
-                // Assertion: there is a previous element on the stack, and it is PlayerTurn
-                playerToDecide = ((TrickState.PlayerTurn) state.get(state.size() - 2)).player();
+                playerToDecide = decider;
                 break;
             case TrickState.Challenge(int _, int challenged, int worth): {
                 List<TrickAction> plrActions = new ArrayList<>();
@@ -219,7 +239,9 @@ public class Trick implements Serializable {
         switch (state.getLast()) {
             case TrickState.Over(int _, int _, int _):
                 return this;
-            case TrickState.ElevenHand():
+            case TrickState.RoundEnd(int _, int _, int _):
+                return this;
+            case TrickState.ElevenHandDecision(int _):
                 switch (action) {
                     case TrickAction.Call():
                         return popState().withTrickValue(3);
@@ -389,8 +411,25 @@ public class Trick implements Serializable {
             } else {
                 return TrickResult.DRAW;
             }
+        } else if (state.getLast() instanceof TrickState.RoundEnd over) {
+            if (over.winningPlayer() == 0) {
+                return TrickResult.PLAYER0;
+            } else if (over.winningPlayer() == 1) {
+                return TrickResult.PLAYER1;
+            } else if (over.winningPlayer() == 2) {
+                return TrickResult.PLAYER2;
+            } else if (over.winningPlayer() == 3) {
+                return TrickResult.PLAYER3;
+            } else {
+                return TrickResult.DRAW;
+            }
         }
         return TrickResult.IN_PROGRESS;
+    }
+
+    @JsonIgnore
+    public boolean isRoundOver() {
+        return state.getLast() instanceof TrickState.RoundEnd;
     }
 
     public int getTrickValue() {
@@ -413,10 +452,8 @@ public class Trick implements Serializable {
         return flip;
     }
 
-    public Trick hideHand(int playerIndex) {
-        List<Hand> newHands = IntStream.range(0, hands.size())
-                .mapToObj(i -> i == playerIndex ? hands.get(i).hide() : hands.get(i))
-                .collect(Collectors.toUnmodifiableList());
-        return new Trick(state, newHands, table, players, flip, isFirstTrick, trickValue, startingPlayer);
+    @JsonIgnore
+    public boolean isElevenHand() {
+        return isElevenHand();
     }
 }

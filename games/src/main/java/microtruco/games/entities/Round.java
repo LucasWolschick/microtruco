@@ -15,7 +15,7 @@ public class Round implements Serializable {
     private List<GameResult> results;
     private List<Long> players;
 
-    public Round(List<Long> players, int currentStarter) {
+    public Round(List<Long> players, int currentStarter, int teamAScore, int teamBScore) {
         this.results = new ArrayList<>();
         this.deck = new Deck();
         this.currentStarter = currentStarter;
@@ -26,7 +26,23 @@ public class Round implements Serializable {
         var hands = this.deck.deal(players.size(), 3);
         var flip = this.deck.draw();
 
-        this.currentTrick = new Trick(this.players, hands, flip, currentStarter, true, 1);
+        this.currentTrick = new Trick(this.players, hands, flip, currentStarter, true, 1, false);
+
+        if (teamAScore == 11 && teamBScore == 11) {
+            this.currentTrick = this.currentTrick.withElevenHand().withTrickValue(3);
+        } else if (teamAScore == 11 || teamBScore == 11) {
+            int team;
+            if (teamAScore == 11)
+                team = 0;
+            else
+                team = 1;
+            int decider;
+            if (currentStarter % 2 == team)
+                decider = currentStarter;
+            else
+                decider = (currentStarter + 1) % players.size();
+            this.currentTrick = this.currentTrick.pushState(new Trick.TrickState.ElevenHandDecision(decider));
+        }
     }
 
     @JsonIgnore
@@ -67,13 +83,20 @@ public class Round implements Serializable {
                         break;
                 }
                 this.currentTrick = new Trick(this.players, this.currentTrick.getHands(), this.deck.draw(),
-                        this.currentStarter, false, this.currentTrick.getTrickValue());
+                        this.currentStarter, false, this.currentTrick.getTrickValue(),
+                        this.currentTrick.isElevenHand());
             }
         }
     }
 
     @JsonIgnore
     public GameResult getRoundResult() {
+        if (this.currentTrick.isRoundOver()) {
+            // round ended due to a fold
+            // whoever won the last trick is the winner
+            return this.currentTrick.getResult().toGameResult();
+        }
+
         // check to see if there's a winner
         if (this.results.size() == 2) {
             // we have a winner only if the first result was a win
@@ -145,6 +168,6 @@ public class Round implements Serializable {
     }
 
     public void hideHand(int playerIndex) {
-        currentTrick = currentTrick.hideHand(playerIndex);
+        currentTrick = currentTrick.withHiddenHand(playerIndex);
     }
 }

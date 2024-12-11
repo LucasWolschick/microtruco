@@ -18,7 +18,7 @@ public class Game implements Serializable {
         this.players = players;
         this.teamAScore = 0;
         this.teamBScore = 0;
-        this.currentRound = new Round(players, startingPlayer);
+        this.currentRound = new Round(players, startingPlayer, teamAScore, teamBScore);
         this.startingPlayer = 0;
     }
 
@@ -63,7 +63,7 @@ public class Game implements Serializable {
             // if the game is over, don't start a new round
             if (getGameResult() == GameResult.IN_PROGRESS) {
                 this.startingPlayer = (this.startingPlayer + 1) % players.size();
-                this.currentRound = new Round(players, startingPlayer);
+                this.currentRound = new Round(players, startingPlayer, teamAScore, teamBScore);
             }
         }
     }
