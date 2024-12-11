@@ -1,6 +1,8 @@
-package microtruco.games;
+package microtruco.games.entities;
 
-public record Card(Suit suit, Rank rank) implements Comparable<Card> {
+import java.io.Serializable;
+
+public record Card(Suit suit, Rank rank) implements Comparable<Card>, Serializable {
     public static enum Rank {
         HIDDEN, FOUR, FIVE, SIX, SEVEN, QUEEN, JACK, KING, ACE, TWO, THREE;
 

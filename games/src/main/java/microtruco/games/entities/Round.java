@@ -1,8 +1,12 @@
-package microtruco.games;
+package microtruco.games.entities;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Round {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class Round implements Serializable {
     public static final int MAX_ROUNDS = 3;
 
     private Trick currentTrick;
@@ -12,11 +16,12 @@ public class Round {
     private List<Long> players;
 
     public Round(List<Long> players, int currentStarter) {
-        this.results = List.of();
+        this.results = new ArrayList<>();
         this.deck = new Deck();
         this.currentStarter = currentStarter;
         this.players = List.copyOf(players);
 
+        this.deck.fill();
         this.deck.shuffle();
         var hands = this.deck.deal(players.size(), 3);
         var flip = this.deck.draw();
@@ -24,11 +29,12 @@ public class Round {
         this.currentTrick = new Trick(this.players, hands, flip, currentStarter, true, 1);
     }
 
+    @JsonIgnore
     public Trick.PlayerActions getActions() {
         return this.currentTrick.getActions();
     }
 
-    public GameResult getTrickResult() {
+    private GameResult getTrickResult() {
         return this.currentTrick.getResult().toGameResult();
     }
 
@@ -66,6 +72,7 @@ public class Round {
         }
     }
 
+    @JsonIgnore
     public GameResult getRoundResult() {
         // check to see if there's a winner
         if (this.results.size() == 2) {
@@ -115,5 +122,25 @@ public class Round {
 
     public int getRoundValue() {
         return currentTrick.getTrickValue();
+    }
+
+    public static int getMaxRounds() {
+        return MAX_ROUNDS;
+    }
+
+    public Trick getCurrentTrick() {
+        return currentTrick;
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public int getCurrentStarter() {
+        return currentStarter;
+    }
+
+    public List<GameResult> getResults() {
+        return results;
     }
 }

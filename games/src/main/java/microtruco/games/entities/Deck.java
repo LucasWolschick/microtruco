@@ -1,18 +1,19 @@
-package microtruco.games;
+package microtruco.games.entities;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-import microtruco.games.Card.Rank;
-import microtruco.games.Card.Suit;
+import microtruco.games.entities.Card.Rank;
+import microtruco.games.entities.Card.Suit;
 
 /**
  * Represents a deck of cards.
  */
-public class Deck {
+public class Deck implements Serializable {
 
     /**
      * A deque to hold the cards in the deck.
@@ -34,7 +35,8 @@ public class Deck {
         cards.clear();
         for (Suit suit : Suit.values()) {
             for (Rank rank : Rank.values()) {
-                cards.add(new Card(suit, rank));
+                if (suit != Suit.HIDDEN && rank != Rank.HIDDEN)
+                    cards.add(new Card(suit, rank));
             }
         }
     }

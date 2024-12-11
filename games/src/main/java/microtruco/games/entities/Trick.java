@@ -1,10 +1,22 @@
-package microtruco.games;
+package microtruco.games.entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Trick {
-    public static sealed interface TrickState {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+public class Trick implements Serializable {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = TrickState.PlayerTurn.class, name = "PlayerTurn"),
+            @JsonSubTypes.Type(value = TrickState.ElevenHand.class, name = "ElevenHand"),
+            @JsonSubTypes.Type(value = TrickState.Challenge.class, name = "Challenge"),
+            @JsonSubTypes.Type(value = TrickState.Over.class, name = "Over"),
+    })
+    public static sealed interface TrickState extends Serializable {
         public record PlayerTurn(int player) implements TrickState {
         }
 
@@ -18,7 +30,15 @@ public class Trick {
         }
     }
 
-    public static sealed interface TrickAction {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = TrickAction.PlayCard.class, name = "PlayCard"),
+            @JsonSubTypes.Type(value = TrickAction.PlayHiddenCard.class, name = "PlayHiddenCard"),
+            @JsonSubTypes.Type(value = TrickAction.Bet.class, name = "Bet"),
+            @JsonSubTypes.Type(value = TrickAction.Call.class, name = "Call"),
+            @JsonSubTypes.Type(value = TrickAction.Fold.class, name = "Fold")
+    })
+    public static sealed interface TrickAction extends Serializable {
         public record PlayCard(Card card) implements TrickAction {
         }
 
@@ -35,7 +55,7 @@ public class Trick {
         }
     }
 
-    public static record PlayerActions(int player, List<TrickAction> actions) {
+    public static record PlayerActions(int player, List<TrickAction> actions) implements Serializable {
     }
 
     private final List<TrickState> state;
@@ -114,6 +134,7 @@ public class Trick {
                 startingPlayer);
     }
 
+    @JsonIgnore
     public PlayerActions getActions() {
         int playerToDecide;
         List<TrickAction> actions;
@@ -189,6 +210,7 @@ public class Trick {
         }
 
         return new PlayerActions(playerToDecide, actions);
+
     }
 
     public Trick applyAction(int player, TrickAction action) {
@@ -348,8 +370,10 @@ public class Trick {
                     throw new IllegalArgumentException("Invalid trick result");
             }
         }
+
     }
 
+    @JsonIgnore
     public TrickResult getResult() {
         if (state.getLast() instanceof TrickState.Over over) {
             if (over.winningPlayer() == 0) {
@@ -373,5 +397,17 @@ public class Trick {
 
     public List<Hand> getHands() {
         return hands;
+    }
+
+    public List<TrickState> getState() {
+        return state;
+    }
+
+    public List<Card> getTable() {
+        return table;
+    }
+
+    public Card getFlip() {
+        return flip;
     }
 }

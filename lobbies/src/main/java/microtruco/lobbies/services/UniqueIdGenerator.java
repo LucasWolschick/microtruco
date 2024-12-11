@@ -1,11 +1,11 @@
-package microtruco.lobbies;
+package microtruco.lobbies.services;
 
 import java.util.List;
 import java.util.Random;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class UniqueIdGenerator {
     private static final List<String> NOUNS = List.of("ant", "apple", "arrow", "baby", "bag", "ball", "banana", "bear",
             "beard", "bed", "bee", "bell", "bench", "bird", "blanket", "blob", "blue", "boat", "book", "bottle", "box",

@@ -1,15 +1,16 @@
 /**
  * Represents a hand of cards in the game.
  */
-package microtruco.games;
+package microtruco.games.entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Represents a hand of cards.
  */
-public class Hand {
+public class Hand implements Serializable {
     private final List<Card> cards;
 
     /**

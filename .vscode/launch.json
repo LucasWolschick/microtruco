@@ -8,6 +8,28 @@
             "mainClass": "microtruco.lobbies.LobbiesApplication",
             "projectName": "lobbies",
             "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53751 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=lobbies"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-UsersApplication<users>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "microtruco.users.UsersApplication",
+            "projectName": "users",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env",
+            "vmArgs": " -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=53744 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dspring.jmx.enabled=true -Djava.rmi.server.hostname=localhost -Dspring.application.admin.enabled=true -Dspring.boot.project.name=users"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GamesApplication<games>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "microtruco.games.GamesApplication",
+            "projectName": "games",
+            "args": "",
             "envFile": "${workspaceFolder}/.env"
         }
     ]

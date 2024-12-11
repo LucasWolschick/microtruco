@@ -1,8 +1,11 @@
-package microtruco.games;
+package microtruco.games.entities;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Game {
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class Game implements Serializable {
     private List<Long> players;
 
     // game state
@@ -19,6 +22,7 @@ public class Game {
         this.startingPlayer = 0;
     }
 
+    @JsonIgnore
     public Trick.PlayerActions getActions() {
         return this.currentRound.getActions();
     }
@@ -62,5 +66,21 @@ public class Game {
                 this.currentRound = new Round(players, startingPlayer);
             }
         }
+    }
+
+    public int getTeamAScore() {
+        return teamAScore;
+    }
+
+    public int getTeamBScore() {
+        return teamBScore;
+    }
+
+    public Round getCurrentRound() {
+        return currentRound;
+    }
+
+    public int getStartingPlayer() {
+        return startingPlayer;
     }
 }
