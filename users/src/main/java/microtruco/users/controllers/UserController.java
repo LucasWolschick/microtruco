@@ -53,6 +53,6 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable("id") Long id) {
-        return repository.findById(id).orElse(null);
+        return repository.findById(id).orElseThrow();
     }
 }
