@@ -71,4 +71,11 @@ public class Hand implements Serializable {
         }
         return new Hand(cards);
     }
+
+    /**
+     * Returns this hand, but with the cards hidden.
+     */
+    public Hand hide() {
+        return new Hand(cards.stream().map(_ -> Card.HIDDEN_CARD).toList());
+    }
 }

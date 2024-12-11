@@ -38,30 +38,59 @@ public class MatchController {
         return repository.save(match);
     }
 
+    public void stopMatch(String lobbyId, Long matchId) {
+        var match = repository.findById(matchId).orElseThrow();
+        if (!match.getLobbyId().equals(lobbyId)) {
+            throw new IllegalArgumentException("Match does not belong to this lobby.");
+        }
+        repository.delete(match);
+    }
+
     @GetMapping("/{id}")
-    public Match getMatch(@PathVariable("id") Long id) {
-        return repository.findById(id).orElseThrow();
+    public Match getMatch(@PathVariable("id") Long id, @RequestHeader("Authorization") String authz) {
+        var token = authService.getTokenFromAuthorizationHeader(authz);
+        var user = authService.getUserIdFromToken(token);
+        var match = repository.findById(id).orElseThrow();
+        if (!match.getPlayers().contains(user)) {
+            throw new IllegalArgumentException("User is not in this match.");
+        }
+        // hide hands from other players
+        var game = match.getGame();
+        var playerIndex = match.getPlayers().indexOf(user);
+        game.hideHandsForPlayer(playerIndex);
+        return match;
     }
 
     @GetMapping("/{id}/actions")
-    public PlayerActions getActions(@PathVariable("id") Long id) {
+    public PlayerActions getActions(@PathVariable("id") Long id, @RequestHeader("Authorization") String authz) {
+        var token = authService.getTokenFromAuthorizationHeader(authz);
+        var user = authService.getUserIdFromToken(token);
         var match = repository.findById(id).orElseThrow();
-        return match.getGame().getActions();
+        if (!match.getPlayers().contains(user)) {
+            throw new IllegalArgumentException("User is not in this match.");
+        }
+
+        var actions = match.getGame().getActions();
+        var playerIndex = match.getPlayers().indexOf(id);
+        if (actions.player() != playerIndex) {
+            // only show actions if it's the player's turn
+            // only show actions to the right player
+            return new PlayerActions(actions.player(), List.of());
+        }
+        return actions;
     }
 
     @PostMapping("/{id}/actions")
     public Match takeAction(@PathVariable("id") Long id, @RequestParam("n") int index,
-            @RequestHeader("Authorization") String authorization) {
-        var token = authService.getTokenFromAuthorizationHeader(authorization);
+            @RequestHeader("Authorization") String authz) {
+        var token = authService.getTokenFromAuthorizationHeader(authz);
         var user = authService.getUserIdFromToken(token);
-
         var match = repository.findById(id).orElseThrow();
-        var game = match.getGame();
-        var playerIndex = match.getPlayers().indexOf(user);
-        if (playerIndex == -1) {
+        if (!match.getPlayers().contains(user)) {
             throw new IllegalArgumentException("User is not in this match.");
         }
-
+        var game = match.getGame();
+        var playerIndex = match.getPlayers().indexOf(user);
         var actions = game.getActions();
         if (actions.player() != playerIndex) {
             throw new IllegalArgumentException("It's not your turn.");
@@ -72,13 +101,5 @@ public class MatchController {
 
         game.applyAction(playerIndex, actions.actions().get(index));
         return repository.save(match);
-    }
-
-    public void stopMatch(String lobbyId, Long matchId) {
-        var match = repository.findById(matchId).orElseThrow();
-        if (!match.getLobbyId().equals(lobbyId)) {
-            throw new IllegalArgumentException("Match does not belong to this lobby.");
-        }
-        repository.delete(match);
     }
 }

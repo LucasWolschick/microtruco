@@ -143,4 +143,8 @@ public class Round implements Serializable {
     public List<GameResult> getResults() {
         return results;
     }
+
+    public void hideHand(int playerIndex) {
+        currentTrick = currentTrick.hideHand(playerIndex);
+    }
 }

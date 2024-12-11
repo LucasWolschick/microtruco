@@ -3,6 +3,8 @@ package microtruco.games.entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -409,5 +411,12 @@ public class Trick implements Serializable {
 
     public Card getFlip() {
         return flip;
+    }
+
+    public Trick hideHand(int playerIndex) {
+        List<Hand> newHands = IntStream.range(0, hands.size())
+                .mapToObj(i -> i == playerIndex ? hands.get(i) : hands.get(i).hide())
+                .collect(Collectors.toUnmodifiableList());
+        return new Trick(state, newHands, table, players, flip, isFirstTrick, trickValue, startingPlayer);
     }
 }

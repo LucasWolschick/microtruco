@@ -68,6 +68,18 @@ public class Game implements Serializable {
         }
     }
 
+    public void hideHand(int playerIndex) {
+        this.currentRound.hideHand(playerIndex);
+    }
+
+    public void hideHandsForPlayer(int playerIndex) {
+        for (var i = 0; i < players.size(); i++) {
+            if (i != playerIndex) {
+                hideHand(i);
+            }
+        }
+    }
+
     public int getTeamAScore() {
         return teamAScore;
     }
