@@ -48,8 +48,7 @@ public class MatchController {
 
     @GetMapping("/{id}")
     public Match getMatch(@PathVariable("id") Long id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var match = repository.findById(id).orElseThrow();
         if (!match.getPlayers().contains(user)) {
             throw new IllegalArgumentException("User is not in this match.");
@@ -63,8 +62,7 @@ public class MatchController {
 
     @GetMapping("/{id}/actions")
     public PlayerActions getActions(@PathVariable("id") Long id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var match = repository.findById(id).orElseThrow();
         if (!match.getPlayers().contains(user)) {
             throw new IllegalArgumentException("User is not in this match.");
@@ -83,8 +81,7 @@ public class MatchController {
     @PostMapping("/{id}/actions")
     public Match takeAction(@PathVariable("id") Long id, @RequestParam("n") int index,
             @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var match = repository.findById(id).orElseThrow();
         if (!match.getPlayers().contains(user)) {
             throw new IllegalArgumentException("User is not in this match.");

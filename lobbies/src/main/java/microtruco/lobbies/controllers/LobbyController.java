@@ -18,17 +18,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RestController
 @RequestMapping("/lobbies")
 public class LobbyController {
-    @Autowired
     private LobbyRepository repository;
-
-    @Autowired
     private AuthService authService;
-
-    @Autowired
     private UniqueIdGenerator idGenerator;
-
-    @Autowired
     private GameService gameService;
+
+    public LobbyController(LobbyRepository repository, AuthService authService, UniqueIdGenerator idGenerator,
+            GameService gameService) {
+        this.repository = repository;
+        this.authService = authService;
+        this.idGenerator = idGenerator;
+        this.gameService = gameService;
+    }
 
     @PostMapping("/create")
     public Lobby createLobby() {
@@ -44,8 +45,7 @@ public class LobbyController {
 
     @PostMapping("/{id}/join")
     public Lobby joinLobby(@PathVariable("id") String id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var lobby = repository.findById(id).orElseThrow();
         lobby.addUser(user);
         return repository.save(lobby);
@@ -53,8 +53,7 @@ public class LobbyController {
 
     @PostMapping("/{id}/leave")
     public Lobby postMethodName(@PathVariable("id") String id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var lobby = repository.findById(id).orElseThrow();
         lobby.removeUser(user);
         return repository.save(lobby);
@@ -62,8 +61,7 @@ public class LobbyController {
 
     @PostMapping("/{id}/start")
     public Lobby startGame(@PathVariable("id") String id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var lobby = repository.findById(id).orElseThrow();
         if (!lobby.isOwner(user)) {
             throw new RuntimeException("Only the owner can start the game");
@@ -81,8 +79,7 @@ public class LobbyController {
 
     @PostMapping("/{id}/stop")
     public Lobby stopGame(@PathVariable("id") String id, @RequestHeader("Authorization") String authz) {
-        var token = authService.getTokenFromAuthorizationHeader(authz);
-        var user = authService.getUserIdFromToken(token);
+        var user = authService.getUserIdFromAuthorizationHeader(authz);
         var lobby = repository.findById(id).orElseThrow();
         if (!lobby.isOwner(user)) {
             throw new RuntimeException("Only the owner can stop the game");

@@ -1,28 +1,21 @@
 package microtruco.games.services;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    private final RabbitTemplate rabbitTemplate;
+    private final JwtService jwtService;
 
-    public AuthService(RabbitTemplate rabbitTemplate) {
-        this.rabbitTemplate = rabbitTemplate;
+    public AuthService(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
-    public Long getUserIdFromToken(String token) {
-        Long userId = (Long) rabbitTemplate.convertSendAndReceive("authExchange", "userIdFromToken", token);
-        if (userId == null) {
-            throw new RuntimeException("Invalid token");
-        }
-        return userId;
-    }
-
-    public String getTokenFromAuthorizationHeader(String authorizationHeader) {
+    public Long getUserIdFromAuthorizationHeader(String authorizationHeader) {
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new RuntimeException("Invalid authorization header");
         }
-        return authorizationHeader.substring(7);
+        var token = authorizationHeader.substring(7);
+        Long userId = Long.parseLong(jwtService.getUserId(token));
+        return userId;
     }
 }
