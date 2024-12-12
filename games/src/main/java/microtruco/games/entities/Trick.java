@@ -246,7 +246,7 @@ public class Trick implements Serializable {
                     case TrickAction.Call():
                         return popState().withTrickValue(3);
                     case TrickAction.Fold():
-                        return pushState(new TrickState.Over(player % 2 + 1, player, trickValue));
+                        return pushState(new TrickState.RoundEnd(player % 2 + 1, player, trickValue));
                     default:
                         throw new IllegalArgumentException("Invalid action for state");
                 }
@@ -264,7 +264,7 @@ public class Trick implements Serializable {
                     case TrickAction.Call():
                         return popState().withTrickValue(worth);
                     case TrickAction.Fold():
-                        return pushState(new TrickState.Over(challenger % 2 + 1, challenger, trickValue));
+                        return pushState(new TrickState.RoundEnd(challenger % 2 + 1, challenger, trickValue));
                     default:
                         throw new IllegalArgumentException("Invalid action for state");
                 }
@@ -368,7 +368,8 @@ public class Trick implements Serializable {
                                 new TrickState.Challenge(currentPlayer, (currentPlayer + 1) % players.size(), value));
                     }
                     case TrickAction.Fold():
-                        return pushState(new TrickState.Over((currentPlayer + 1) % 2 + 1, currentPlayer, trickValue));
+                        return pushState(
+                                new TrickState.RoundEnd((currentPlayer + 1) % 2 + 1, currentPlayer, trickValue));
                     default:
                         throw new IllegalArgumentException("Invalid action for state");
                 }
@@ -454,6 +455,6 @@ public class Trick implements Serializable {
 
     @JsonIgnore
     public boolean isElevenHand() {
-        return isElevenHand();
+        return isElevenHand;
     }
 }
