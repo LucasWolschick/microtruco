@@ -369,7 +369,7 @@ public class Trick implements Serializable {
                     }
                     case TrickAction.Fold():
                         return pushState(
-                                new TrickState.RoundEnd((currentPlayer + 1) % 2 + 1, currentPlayer, trickValue));
+                                new TrickState.RoundEnd((currentPlayer) % 2 + 1, currentPlayer, trickValue));
                     default:
                         throw new IllegalArgumentException("Invalid action for state");
                 }

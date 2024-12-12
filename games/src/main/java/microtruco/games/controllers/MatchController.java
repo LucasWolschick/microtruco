@@ -98,6 +98,10 @@ public class MatchController {
         }
 
         game.applyAction(playerIndex, actions.actions().get(index));
-        return repository.save(match);
+        match = repository.save(match);
+
+        game = match.getGame();
+        game.hideHandsForPlayer(playerIndex);
+        return match;
     }
 }
