@@ -16,9 +16,9 @@ public class GamesApplication {
     @Bean
     DataSource dataSource() {
         final DriverManagerDataSource dataSource = new DriverManagerDataSource(
-                "jdbc:sqlite:games.db",
-                "games",
-                "games");
+                "jdbc:postgresql://localhost:5432/games",
+                "postgres",
+                "123");
         return dataSource;
     }
 }
